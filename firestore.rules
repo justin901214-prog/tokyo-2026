@@ -1,0 +1,37 @@
+rules_version = '2';
+// 大家都能讀；登入的人只能寫自己的票、讚、留言。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function mine() { return request.resource.data.uid == request.auth.uid; }
+    function nameOk() { return request.resource.data.name is string && request.resource.data.name.size() <= 30; }
+    function stamped() { return request.resource.data.at == request.time; }
+
+    match /votes/{id} {
+      allow read: if true;
+      allow create, update: if signedIn() && mine() && nameOk() && stamped()
+        && id == request.resource.data.poll + '_' + request.auth.uid
+        && request.resource.data.opt is string && request.resource.data.opt.size() <= 40
+        && request.resource.data.keys().hasOnly(['poll', 'opt', 'uid', 'name', 'at']);
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /likes/{id} {
+      allow read: if true;
+      allow create, update: if signedIn() && mine() && nameOk() && stamped()
+        && id == request.resource.data.item + '_' + request.auth.uid
+        && request.resource.data.keys().hasOnly(['item', 'uid', 'name', 'at']);
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /comments/{id} {
+      allow read: if true;
+      allow create: if signedIn() && mine() && nameOk() && stamped()
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.target is string && request.resource.data.target.size() <= 60
+        && request.resource.data.keys().hasOnly(['target', 'text', 'uid', 'name', 'at']);
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+  }
+}
