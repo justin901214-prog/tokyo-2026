@@ -1,5 +1,8 @@
 import { TRIP, AREAS, TYPES, PRICES, FOOD, STAYS, DAYS, POLLS, TRANSPORT, BUDGET, TIPS } from './data.js';
+import { FOOD_META } from './food-meta.js';
 import * as S from './social.js';
+
+FOOD.forEach(f => Object.assign(f, FOOD_META[f.id]));
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -28,6 +31,14 @@ const ICON = {
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   link: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  yen: '<path d="m6 3 6 8 6-8M12 11v10M7 13h10M7 17h10"/>',
+  left: '<path d="m15 18-6-6 6-6"/>',
+  right: '<path d="m9 18 6-6-6-6"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  cards: '<rect x="2" y="5" width="15" height="14" rx="2"/><path d="M21 7v10"/>',
+  locate: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
 };
 const icon = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[n] || ICON.spot}</svg>`;
 
@@ -64,8 +75,13 @@ function render() {
   $$('.frow [aria-current]').forEach(el => { el.parentElement.scrollLeft = el.offsetLeft - el.parentElement.offsetLeft - 16; });
   $$('.tabbar a').forEach(a => a.toggleAttribute('aria-current', a.dataset.tab === (r.tab || 'day')));
   refreshSocial();
-  const target = r.tab === 'vote' && r.arg ? $('#poll-' + r.arg) : null;
-  if (target) target.scrollIntoView({ block: 'start' });
+  initCarousels(view);
+  if (r.tab === 'food') {
+    initFoodMap(r.q);
+    const focus = r.q.get('focus');
+    if (focus) requestAnimationFrame(() => showFood(focus, false));
+  }
+  if (r.tab === 'vote' && r.arg === 'results') $('#results')?.scrollIntoView({ block: 'start' });
   else window.scrollTo(0, 0);
 }
 
@@ -137,6 +153,7 @@ function foodRail(area) {
     <div class="rail">
       ${list.slice(0, 4).map(f => `
         <a class="rail-card" href="#food?area=${area}&focus=${f.id}">
+          ${f.img ? `<img src="img/${f.img}.jpg" alt="" loading="lazy">` : ''}
           <b>${esc(f.name)}</b>
           <span>${esc(f.type)} · ${priceLabel(f.price)}</span>
           <span class="rc-like">${icon('heart')}<i data-like-count="food:${f.id}">0</i></span>
@@ -146,59 +163,180 @@ function foodRail(area) {
 }
 
 // ---------- 投票 ----------
-function pollCard(p, compact) {
+// 行程頁用的精簡版：只有選項列表和投票按鈕
+function pollCard(p) {
   return `
-    <article class="poll ${compact ? 'compact' : 'card'}" data-poll="${p.id}" ${compact ? '' : `id="poll-${p.id}"`}>
-      ${compact ? '' : `<p class="eyebrow">${esc(p.when)} · ${esc(p.deadline)} 截止</p><h2>${esc(p.title)}</h2><p class="muted">${esc(p.desc)}</p>`}
+    <article class="poll compact" data-poll="${p.id}">
       <div class="opts">${p.options.map(o => `
         <div class="opt" data-opt-wrap="${p.id}:${o.id}">
-          ${!compact && o.img ? `<img src="img/${o.img}.jpg" alt="" loading="lazy">` : ''}
           <div class="opt-main">
             <div class="opt-head">
               <h3>${esc(o.title)}</h3>
-              <button class="vote-btn" data-vote="${p.id}" data-opt="${o.id}" aria-pressed="false"><span class="vb-on">已投</span><span class="vb-off">投這個</span></button>
+              ${voteBtn(p.id, o.id)}
             </div>
-            ${compact ? '' : `
-              <p class="meta">${esc(o.time)} · ${esc(o.cost)}</p>
-              <ul class="points">${o.points.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-              ${o.areas.length ? `<div class="chips-row">${o.areas.map(a => `<a class="pill pill-link" href="#food?area=${a}">${icon('meal')}${esc(areaName(a))}美食</a>`).join('')}</div>` : ''}`}
             <div class="bar"><i data-bar="${p.id}:${o.id}"></i></div>
             <p class="voters"><b data-vcount="${p.id}:${o.id}">0</b> 票 <span data-voters="${p.id}:${o.id}"></span></p>
           </div>
         </div>`).join('')}
       </div>
-      ${compact ? `<a class="more-link" href="#vote/${p.id}">看詳細介紹與留言 ›</a>` : commentBox('poll:' + p.id)}
+      <a class="more-link" href="#vote/${p.id}">左右滑看介紹、比一比與留言 ›</a>
     </article>`;
 }
 
-function voteView() {
+const voteBtn = (pid, oid) => `<button class="vote-btn" data-vote="${pid}" data-opt="${oid}" aria-pressed="false"><span class="vb-on">${icon('check')}已投</span><span class="vb-off">投這個</span></button>`;
+
+function optionCard(p, o, i) {
+  return `
+    <article class="car-item opt big" data-opt-wrap="${p.id}:${o.id}">
+      <div class="opt-img">
+        ${o.img ? `<img src="img/${o.img}.jpg" alt="" loading="lazy">` : ''}
+        <span class="badge">${i + 1} / ${p.options.length}</span>
+        <span class="lead-tag">目前領先</span>
+      </div>
+      <div class="opt-main">
+        <div class="opt-head">
+          <h3>${esc(o.title)}</h3>
+          ${voteBtn(p.id, o.id)}
+        </div>
+        <ul class="facts-i">
+          <li>${icon('clock')}<span>${esc(o.time)}</span></li>
+          <li>${icon('yen')}<span>${esc(o.cost)}</span></li>
+          ${o.access ? `<li>${icon('move')}<span>${esc(o.access)}</span></li>` : ''}
+        </ul>
+        <ul class="pc pros">${o.pros.map(x => `<li>${icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>
+        <ul class="pc cons">${o.cons.map(x => `<li>${icon('x')}<span>${esc(x)}</span></li>`).join('')}</ul>
+        ${o.areas.length ? `<div class="chips-row">${o.areas.map(a => `<a class="pill pill-link" href="#food?area=${a}">${icon('meal')}${esc(areaName(a))}美食</a>`).join('')}</div>` : ''}
+        <div class="bar"><i data-bar="${p.id}:${o.id}"></i></div>
+        <p class="voters"><b data-vcount="${p.id}:${o.id}">0</b> 票 <span data-voters="${p.id}:${o.id}"></span></p>
+      </div>
+    </article>`;
+}
+
+function compareTable(p) {
+  const rows = [
+    ['票數', o => `<b class="cmp-n" data-vcount="${p.id}:${o.id}">0</b>`],
+    ['時間', o => esc(o.time)],
+    ['花費', o => esc(o.cost)],
+    ['交通', o => esc(o.access || '—')],
+    ['優點', o => `<ul class="pc pros">${o.pros.map(x => `<li>${icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>`],
+    ['缺點', o => `<ul class="pc cons">${o.cons.map(x => `<li>${icon('x')}<span>${esc(x)}</span></li>`).join('')}</ul>`],
+  ];
+  return `
+    <section class="card cmp-card">
+      <h2>比一比</h2>
+      <p class="muted small">左右滑動看全部選項，領先的選項會標金色。</p>
+      <div class="cmp-scroll">
+        <table class="cmp" style="--n:${p.options.length}">
+          <thead><tr><th></th>${p.options.map(o => `<th data-opt-wrap="${p.id}:${o.id}">${o.img ? `<img src="img/${o.img}.jpg" alt="" loading="lazy">` : ''}<span>${esc(o.title)}</span></th>`).join('')}</tr></thead>
+          <tbody>${rows.map(([label, fn]) => `<tr><th>${label}</th>${p.options.map(o => `<td data-opt-wrap="${p.id}:${o.id}">${fn(o)}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </section>`;
+}
+
+function voteView(arg) {
+  const p = POLLS.find(x => x.id === arg) || POLLS[0];
   return `
     <div class="pad">
       <header class="page-head">
         <h1>行程候選</h1>
-        <p class="muted">每題每人一票，可以改票；再按一次取消。投票結果大家都看得到。</p>
+        <p class="muted">選一個時段，左右滑看選項。每題每人一票，可以改票；再按一次取消。</p>
       </header>
-      ${POLLS.map(p => pollCard(p, false)).join('')}
+      <nav class="evt" aria-label="投票時段">
+        ${POLLS.map(x => `<a href="#vote/${x.id}" data-evt="${x.id}" ${x.id === p.id && arg !== 'results' ? 'aria-current="true"' : ''}><b>${esc(x.short)}</b><small data-evt-lead="${x.id}">還沒有票</small></a>`).join('')}
+        <a href="#vote/results" class="evt-sum" ${arg === 'results' ? 'aria-current="true"' : ''}><b>結果總覽</b><small>全部投票</small></a>
+      </nav>
+      <section class="poll" data-poll="${p.id}">
+        <div class="poll-head">
+          <p class="eyebrow">${esc(p.when)} · ${esc(p.deadline)} 截止</p>
+          <h2>${esc(p.title)}</h2>
+          <p class="muted">${esc(p.desc)}</p>
+        </div>
+        ${carousel(p.options.map((o, i) => optionCard(p, o, i)).join(''), 'opts-car')}
+        ${compareTable(p)}
+        <section class="card">
+          <h2>${icon('chat')}討論</h2>
+          ${commentBox('poll:' + p.id)}
+        </section>
+      </section>
+      <section id="results" class="results">
+        <h2 class="sec">投票結果總覽</h2>
+        <p class="muted small" data-participants></p>
+        <div data-results></div>
+      </section>
     </div>`;
 }
 
+// 左右滑動容器：scroll-snap ＋ 上一張／下一張／頁數
+function carousel(items, cls = '') {
+  return `
+    <div class="car-wrap ${cls}">
+      <div class="car" data-car>${items}</div>
+      <div class="car-nav">
+        <button type="button" class="car-btn" data-car-step="-1" aria-label="上一個">${icon('left')}</button>
+        <span class="car-dots" data-car-dots></span>
+        <button type="button" class="car-btn" data-car-step="1" aria-label="下一個">${icon('right')}</button>
+      </div>
+    </div>`;
+}
+
+function initCarousels(root) {
+  $$('[data-car]', root).forEach(car => {
+    const items = [...car.children], dots = $('[data-car-dots]', car.parentElement);
+    if (items.length < 2) { car.parentElement.querySelector('.car-nav').hidden = true; return; }
+    dots.innerHTML = items.length <= 12
+      ? items.map((_, i) => `<i data-dot="${i}"></i>`).join('')
+      : '<span class="car-count"></span>';
+    const update = () => {
+      const i = carIndex(car);
+      if (items.length <= 12) $$('i', dots).forEach((d, k) => d.classList.toggle('on', k === i));
+      else $('.car-count', dots).textContent = `${i + 1} / ${items.length}`;
+      car.dispatchEvent(new CustomEvent('carchange', { detail: i }));
+    };
+    let raf = 0;
+    car.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); }, { passive: true });
+    update();
+  });
+}
+
+function carIndex(car) {
+  const mid = car.scrollLeft + car.clientWidth / 2;
+  let best = 0, bd = Infinity;
+  [...car.children].forEach((el, i) => {
+    const d = Math.abs(el.offsetLeft + el.offsetWidth / 2 - mid);
+    if (d < bd) { bd = d; best = i; }
+  });
+  return best;
+}
+
+function carGo(car, i, smooth = true) {
+  const el = car.children[Math.max(0, Math.min(i, car.children.length - 1))];
+  if (el) car.scrollTo({ left: el.offsetLeft - (car.clientWidth - el.offsetWidth) / 2, behavior: smooth ? 'smooth' : 'auto' });
+}
+
 // ---------- 美食 ----------
+function foodFilter(q) {
+  const area = q.get('area') || '', type = q.get('type') || '', price = Number(q.get('price')) || 0, sort = q.get('sort') || 'like';
+  let list = FOOD.filter(f => (!area || f.area === area) && (!type || f.type === type) && (!price || f.price === price));
+  return sort === 'price' ? list.sort((a, b) => a.price - b.price) : list.sort((a, b) => likeCount(b.id) - likeCount(a.id));
+}
+
 function foodView(q) {
   const area = q.get('area') || '', type = q.get('type') || '', price = Number(q.get('price')) || 0, sort = q.get('sort') || 'like';
+  const mode = q.get('view') === 'list' ? 'list' : 'cards';
   const link = (k, v) => {
     const n = new URLSearchParams(q);
     n.delete('focus');
     if (!v || q.get(k) === String(v)) n.delete(k); else n.set(k, v);
     return '#food?' + n.toString();
   };
-  let list = FOOD.filter(f => (!area || f.area === area) && (!type || f.type === type) && (!price || f.price === price));
-  list = sort === 'price' ? list.sort((a, b) => a.price - b.price) : list.sort((a, b) => likeCount(b.id) - likeCount(a.id));
-  const areaCount = id => FOOD.filter(f => f.area === id).length;
+  const list = foodFilter(q);
+  const cards = list.map((f, i) => foodCard(f, i, mode)).join('');
   return `
     <div class="pad">
       <header class="page-head">
         <h1>餐食推薦</h1>
-        <p class="muted">依區域、種類、價格篩選。按 ♥ 推薦給大家，熱門的會排前面。</p>
+        <p class="muted">選區域看地圖，左右滑卡片，地圖會跟著跳。按 ♥ 推薦，熱門的排前面。</p>
       </header>
       <div class="filters">
         <div class="frow" role="group" aria-label="區域">
@@ -213,34 +351,113 @@ function foodView(q) {
           <a class="chip sort" href="${link('sort', sort === 'price' ? '' : 'price')}">排序：${sort === 'price' ? '價格低→高' : '人氣'}</a>
         </div>
       </div>
-      <p class="count muted">${area ? esc(areaName(area)) + ' · ' : ''}${list.length} 間${area ? `（共 ${areaCount(area)} 間）` : ''}</p>
-      <div class="food-list">${list.map(foodCard).join('') || '<p class="empty">沒有符合的餐廳，換個條件試試。</p>'}</div>
+      <div class="map-box">
+        <div id="foodMap" class="map" role="region" aria-label="餐廳地圖"></div>
+      </div>
+      <div class="count-row">
+        <p class="count muted">${area ? esc(areaName(area)) + ' · ' : ''}${list.length} 間</p>
+        <a class="btn-ghost" href="${link('view', mode === 'list' ? '' : 'list')}">${mode === 'list' ? icon('cards') + '卡片' : icon('list') + '列表'}</a>
+      </div>
+      ${!list.length ? '<p class="empty">沒有符合的餐廳，換個條件試試。</p>'
+        : mode === 'list' ? `<div class="food-list">${cards}</div>` : carousel(cards, 'food-car')}
     </div>`;
 }
 
-function foodCard(f) {
+function foodCard(f, i, mode) {
   const id = 'food:' + f.id;
   return `
-    <article class="card food" id="f-${f.id}">
-      <div class="food-head">
-        <div>
-          <h3>${esc(f.name)}</h3>
-          <p class="jp">${esc(f.jp)}</p>
-        </div>
-        <button class="like" data-like="${id}" aria-pressed="false" aria-label="推薦">${icon('heart')}<b data-like-count="${id}">0</b></button>
+    <article class="card food ${mode === 'cards' ? 'car-item' : ''}" id="f-${f.id}" data-food="${f.id}">
+      <div class="food-img">
+        ${f.img ? `<img src="img/${f.img}.jpg" alt="${esc(f.name)}" loading="lazy">` : `<span class="noimg">${esc(f.type)}</span>`}
+        <span class="num">${i + 1}</span>
+        ${f.generic ? '<span class="gen">示意</span>' : ''}
       </div>
-      <p class="meta"><a href="#food?area=${f.area}">${esc(areaName(f.area))}</a> · ${esc(f.type)} · <b>${priceLabel(f.price)}</b> <small>${priceHint(f.price)}</small></p>
-      <p>${esc(f.desc)}</p>
-      ${f.tip ? `<p class="tip">${esc(f.tip)}</p>` : ''}
-      <p class="liked-by" data-liked-by="${id}"></p>
-      <div class="food-foot">
-        <a class="btn-ghost" href="${mapUrl(f.jp + ' ' + areaName(f.area).replace(/（.*）/, ''))}" target="_blank" rel="noopener">${icon('map')}地圖</a>
-        <details>
-          <summary class="btn-ghost">${icon('chat')}留言 <span data-ccount="${id}">0</span></summary>
-          ${commentBox(id)}
-        </details>
+      <div class="food-body">
+        <div class="food-head">
+          <div>
+            <h3>${esc(f.name)}</h3>
+            <p class="jp">${esc(f.jp)}</p>
+          </div>
+          <button class="like" data-like="${id}" aria-pressed="false" aria-label="推薦">${icon('heart')}<b data-like-count="${id}">0</b></button>
+        </div>
+        <p class="meta"><a href="#food?area=${f.area}">${esc(areaName(f.area))}</a> · ${esc(f.type)} · <b>${priceLabel(f.price)}</b> <small>${priceHint(f.price)}</small></p>
+        <p class="desc">${esc(f.desc)}</p>
+        ${f.tip ? `<p class="tip">${esc(f.tip)}</p>` : ''}
+        <p class="liked-by" data-liked-by="${id}"></p>
+        <div class="food-foot">
+          ${f.lat ? `<button type="button" class="btn-ghost" data-locate="${f.id}">${icon('locate')}${f.approx ? '大概位置' : '在地圖上'}</button>` : ''}
+          <a class="btn-ghost" href="${mapUrl(f.jp + ' ' + areaName(f.area).replace(/（.*）/, ''))}" target="_blank" rel="noopener">${icon('map')}Google 地圖・照片</a>
+          <details>
+            <summary class="btn-ghost">${icon('chat')}留言 <span data-ccount="${id}">0</span></summary>
+            ${commentBox(id)}
+          </details>
+        </div>
       </div>
     </article>`;
+}
+
+// ---------- 地圖（Leaflet ＋ CARTO 底圖）----------
+let foodMap = null, markers = {};
+
+function initFoodMap(q) {
+  const el = $('#foodMap');
+  if (foodMap) { foodMap.remove(); foodMap = null; }
+  markers = {};
+  if (!el || !window.L) { el?.closest('.map-box')?.remove(); return; }
+  const list = foodFilter(q).filter(f => f.lat);
+  foodMap = L.map(el, { zoomControl: false, attributionControl: true, scrollWheelZoom: false, tap: true });
+  L.control.zoom({ position: 'topright' }).addTo(foodMap);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(foodMap);
+
+  STAYS.filter(s => s.lat).forEach(s => {
+    L.marker([s.lat, s.lng], { icon: L.divIcon({ className: 'pin-wrap', html: `<span class="pin stay-pin">${ICON_STAY}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] }), zIndexOffset: -100, title: s.name })
+      .bindTooltip('住：' + s.name, { direction: 'top', offset: [0, -12] }).addTo(foodMap);
+  });
+
+  const all = foodFilter(q);
+  list.forEach(f => {
+    const n = all.indexOf(f) + 1;
+    markers[f.id] = L.marker([f.lat, f.lng], {
+      icon: L.divIcon({ className: 'pin-wrap', html: `<span class="pin${f.approx ? ' approx' : ''}">${n}</span>`, iconSize: [26, 26], iconAnchor: [13, 13] }),
+      title: f.name,
+    }).addTo(foodMap).bindTooltip(f.name, { direction: 'top', offset: [0, -12] })
+      .on('click', () => showFood(f.id));
+  });
+
+  const pts = list.map(f => [f.lat, f.lng]);
+  if (pts.length) foodMap.fitBounds(pts, { padding: [28, 28], maxZoom: 16 });
+  else foodMap.setView([35.68, 139.75], 11);
+
+  const car = $('.food-car [data-car]');
+  if (car) car.addEventListener('carchange', e => setActive(all[e.detail]?.id, true));
+  activeId = null;
+  if (all[0] && !q.get('focus')) setActive(all[0].id, false);
+}
+
+const ICON_STAY = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>';
+
+let activeId = null;
+function setActive(id, pan) {
+  if (!id || id === activeId && !pan) return;
+  activeId = id;
+  for (const [k, m] of Object.entries(markers)) {
+    m.getElement()?.classList.toggle('on', k === id);
+    if (k === id) m.setZIndexOffset(1000); else m.setZIndexOffset(0);
+  }
+  const m = markers[id];
+  if (pan && m && foodMap && !foodMap.getBounds().pad(-0.15).contains(m.getLatLng())) foodMap.panTo(m.getLatLng());
+}
+
+// 點地圖標記或卡片的「在地圖上」：卡片和地圖互相對齊
+function showFood(id, smooth = true) {
+  const card = $('#f-' + id);
+  const car = card?.closest('[data-car]');
+  if (car) carGo(car, [...car.children].indexOf(card), smooth);
+  else card?.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+  setActive(id, true);
 }
 
 // ---------- 住宿 ----------
@@ -373,24 +590,80 @@ function refreshSocial() {
       </li>`).join('');
   });
   $$('[data-poll]').forEach(el => {
-    const pid = el.dataset.poll, votes = st.votes[pid] || {};
-    const total = Object.keys(votes).length;
-    const byOpt = {};
-    for (const v of Object.values(votes)) (byOpt[v.opt] ||= []).push(v.name);
-    const max = Math.max(0, ...Object.values(byOpt).map(a => a.length));
+    const t = tally(el.dataset.poll);
     $$('[data-opt-wrap]', el).forEach(w => {
-      const oid = w.dataset.optWrap.split(':')[1], names = byOpt[oid] || [];
-      $('[data-bar]', w).style.width = total ? (names.length / total * 100) + '%' : '0';
-      $('[data-vcount]', w).textContent = names.length;
-      $('[data-voters]', w).textContent = names.length ? '· ' + names.join('、') : '';
-      $('[data-vote]', w).setAttribute('aria-pressed', votes[me]?.opt === oid);
-      w.classList.toggle('lead', max > 0 && names.length === max);
+      const oid = w.dataset.optWrap.split(':')[1], names = t.byOpt[oid] || [];
+      const bar = $('[data-bar]', w), cnt = $('[data-vcount]', w), who = $('[data-voters]', w), btn = $('[data-vote]', w);
+      if (bar) bar.style.width = t.total ? (names.length / t.total * 100) + '%' : '0';
+      if (cnt) cnt.textContent = names.length;
+      if (who) who.textContent = names.length ? '· ' + names.join('、') : '';
+      if (btn) btn.setAttribute('aria-pressed', t.mine === oid);
+      w.classList.toggle('lead', t.max > 0 && names.length === t.max);
     });
   });
+  // 時段選單：顯示領先選項、自己投過的打勾
+  $$('[data-evt]').forEach(a => {
+    const p = POLLS.find(x => x.id === a.dataset.evt), t = tally(p.id);
+    a.classList.toggle('voted', !!t.mine);
+    $('[data-evt-lead]', a).textContent = t.total ? `${t.leaders.map(o => o.title).join('、').slice(0, 10)} ${t.max} 票` : '還沒有票';
+  });
+  const res = $('[data-results]');
+  if (res) renderResults(res);
   const u = st.user, btn = $('#authBtn');
   btn.innerHTML = u
     ? (u.photo ? `<img src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : `<span class="avatar">${esc(u.name.slice(0, 1))}</span>`) + `<span>${esc(u.name)}</span>`
     : `${icon('user')}<span>登入</span>`;
+}
+
+function tally(pid) {
+  const st = S.state, votes = st.votes[pid] || {}, p = POLLS.find(x => x.id === pid);
+  const byOpt = {};
+  for (const v of Object.values(votes)) (byOpt[v.opt] ||= []).push(v.name);
+  const max = Math.max(0, ...Object.values(byOpt).map(a => a.length));
+  return {
+    byOpt, max, total: Object.keys(votes).length, voters: votes,
+    mine: votes[st.user?.uid]?.opt,
+    leaders: max ? p.options.filter(o => (byOpt[o.id] || []).length === max) : [],
+  };
+}
+
+// 有在網站上投過票、按過讚或留過言的人，用來算「誰還沒投」
+function participants() {
+  const st = S.state, people = {};
+  for (const votes of Object.values(st.votes)) for (const [uid, v] of Object.entries(votes)) people[uid] = v.name;
+  for (const likes of Object.values(st.likes)) for (const [uid, name] of Object.entries(likes)) people[uid] ||= name;
+  for (const list of Object.values(st.comments)) for (const c of list) people[c.uid] ||= c.name;
+  return people;
+}
+
+function renderResults(el) {
+  const people = participants(), n = Object.keys(people).length;
+  const pp = $('[data-participants]');
+  if (pp) pp.textContent = n ? `目前有 ${n} 人參與：${Object.values(people).join('、')}` : '還沒有人參與投票。';
+  el.innerHTML = POLLS.map(p => {
+    const t = tally(p.id);
+    const missing = Object.entries(people).filter(([uid]) => !t.voters[uid]).map(([, name]) => name);
+    const opts = [...p.options].sort((a, b) => (t.byOpt[b.id] || []).length - (t.byOpt[a.id] || []).length);
+    return `
+      <article class="card res">
+        <a class="res-head" href="#vote/${p.id}">
+          <div><p class="eyebrow">${esc(p.when)}</p><h3>${esc(p.title)}</h3></div>
+          <span>${icon('right')}</span>
+        </a>
+        <p class="res-lead">${t.total
+          ? `${t.leaders.length > 1 ? '目前平手' : '目前領先'}：<b>${t.leaders.map(o => esc(o.title)).join('、')}</b>（${t.max} / ${t.total} 票）`
+          : '<span class="muted">還沒有人投</span>'}</p>
+        <ul class="res-bars">${opts.map(o => {
+          const names = t.byOpt[o.id] || [];
+          return `<li class="${names.length && names.length === t.max ? 'lead' : ''}">
+            <div class="rb-top"><span>${esc(o.title)}</span><b>${names.length}</b></div>
+            <div class="bar"><i style="width:${t.total ? names.length / t.total * 100 : 0}%"></i></div>
+            ${names.length ? `<small>${esc(names.join('、'))}</small>` : ''}
+          </li>`;
+        }).join('')}</ul>
+        ${missing.length ? `<p class="small muted">還沒投：${esc(missing.join('、'))}</p>` : ''}
+      </article>`;
+  }).join('');
 }
 
 // ---------- 登入視窗 ----------
@@ -459,6 +732,18 @@ const guard = p => p.catch(e => { console.error(e); toast('沒有成功，請再
 
 // ---------- 事件 ----------
 document.addEventListener('click', e => {
+  const step = e.target.closest('[data-car-step]');
+  if (step) {
+    const car = $('[data-car]', step.closest('.car-wrap'));
+    return carGo(car, carIndex(car) + Number(step.dataset.carStep));
+  }
+  const dot = e.target.closest('[data-dot]');
+  if (dot) return carGo($('[data-car]', dot.closest('.car-wrap')), Number(dot.dataset.dot));
+  const loc = e.target.closest('[data-locate]');
+  if (loc) {
+    showFood(loc.dataset.locate);
+    return $('.map-box')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
   const t = e.target.closest('[data-like],[data-vote],[data-del],[data-act],#authBtn');
   if (!t) return;
   if (t.id === 'authBtn') return openAuth();
@@ -483,11 +768,7 @@ document.addEventListener('input', e => {
   if (e.target.id === 'twd') $('#yen').value = e.target.value ? Math.round(Number(e.target.value.replace(/,/g, '')) * TRIP.rate) || '' : '';
 });
 
-window.addEventListener('hashchange', () => {
-  render();
-  const focus = route().q.get('focus');
-  if (focus) $('#f-' + focus)?.scrollIntoView({ block: 'center' });
-});
+window.addEventListener('hashchange', render);
 
 // ---------- 啟動 ----------
 (async () => {
@@ -497,6 +778,4 @@ window.addEventListener('hashchange', () => {
   refreshSocial();
   if (S.state.mode === 'local') $('#demo').hidden = false;
   if (isLine) $('#lineTip').hidden = false;
-  const focus = route().q.get('focus');
-  if (focus) $('#f-' + focus)?.scrollIntoView({ block: 'center' });
 })();
