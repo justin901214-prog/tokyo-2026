@@ -107,13 +107,14 @@ function dayView(d) {
     <div class="pad">
       <p class="lede">${esc(d.lede)}</p>
       <div class="chips-row">
-        ${stay ? `<a class="pill" href="#stay">${icon('stay')}宿：${esc(stay.name)}</a>` : `<span class="pill">${icon('plane')}回程日</span>`}
+        ${stay ? '' : `<span class="pill">${icon('plane')}回程日</span>`}
         <span class="pill">${icon('wallet')}${esc(d.cost)}</span>
       </div>
       <section class="card key">
         <h2>${icon('clock')}重要時程</h2>
         <ul>${d.key.map(k => `<li><b>${esc(k.t)}</b><span>${esc(k.text)}</span></li>`).join('')}</ul>
       </section>
+      ${dayStay(d)}
       <h2 class="sec">建議時間安排</h2>
       <ol class="tl">${d.items.map(tlItem).join('')}</ol>
       <nav class="pager">
@@ -121,6 +122,39 @@ function dayView(d) {
         ${d.n < DAYS.length ? `<a href="#day/${d.n + 1}">Day ${d.n + 1} ›</a>` : '<span></span>'}
       </nav>
     </div>`;
+}
+
+// 當天住宿：今晚住哪、第幾晚；換宿那天另外提醒前一間的退房
+function dayStay(d) {
+  const stay = STAYS.find(s => s.id === d.stay);
+  const prev = DAYS.find(x => x.n === d.n - 1);
+  const out = prev && prev.stay !== d.stay ? STAYS.find(s => s.id === prev.stay) : null;
+  const nth = stay ? DAYS.filter(x => x.stay === stay.id && x.n <= d.n).length : 0;
+  const outRow = out && out.checkout !== '—'
+    ? `<p class="checkout">${icon('clock')}早上退房：<b>${esc(out.name)}</b>　${esc(out.checkout)}</p>` : '';
+  if (!stay) return outRow ? `<section class="card day-stay">${outRow}<p class="muted small">今晚搭機回台，沒有住宿。</p></section>` : '';
+  return `
+    <section class="card day-stay">
+      ${outRow}
+      <div class="ds-main">
+        ${stay.photos.length ? `<img src="img/stay/${stay.photos[0][0]}.jpg" alt="${esc(stay.photos[0][1])}" loading="lazy">` : `<span class="ds-noimg">${icon('stay')}</span>`}
+        <div>
+          <p class="eyebrow">今晚住宿${stay.night > 1 ? ` · 第 ${nth}／${stay.night} 晚` : ''}</p>
+          <h3>${esc(stay.name)}</h3>
+          <p class="muted small">${esc(stay.jp)} · ${stay.people} 人</p>
+        </div>
+      </div>
+      <dl class="facts">
+        ${nth === 1 ? `<dt>入住</dt><dd>${esc(stay.checkin)}</dd>` : ''}
+        <dt>交通</dt><dd>${esc(stay.station)}</dd>
+        <dt>注意</dt><dd>${esc(stay.notes[0])}</dd>
+      </dl>
+      <div class="food-foot">
+        <a class="btn-ghost" href="#stay">${icon('stay')}住宿詳情</a>
+        <a class="btn-ghost" href="${mapUrl(stay.name + ' ' + stay.area)}" target="_blank" rel="noopener">${icon('map')}地圖</a>
+        ${stay.url ? `<a class="btn-ghost" href="${stay.url}" target="_blank" rel="noopener">${icon('link')}訂房頁</a>` : ''}
+      </div>
+    </section>`;
 }
 
 function tlItem(it) {
@@ -351,9 +385,11 @@ function foodView(q) {
           <a class="chip sort" href="${link('sort', sort === 'price' ? '' : 'price')}">排序：${sort === 'price' ? '價格低→高' : '人氣'}</a>
         </div>
       </div>
+      ${area ? `
       <div class="map-box">
-        <div id="foodMap" class="map" role="region" aria-label="餐廳地圖"></div>
-      </div>
+        <div id="foodMap" class="map" role="region" aria-label="${esc(areaName(area))}餐廳地圖"></div>
+        <a class="map-back" href="${link('area', '')}">‹ 回簡圖</a>
+      </div>` : schematic(list, link)}
       <div class="count-row">
         <p class="count muted">${area ? esc(areaName(area)) + ' · ' : ''}${list.length} 間</p>
         <a class="btn-ghost" href="${link('view', mode === 'list' ? '' : 'list')}">${mode === 'list' ? icon('cards') + '卡片' : icon('list') + '列表'}</a>
@@ -396,14 +432,62 @@ function foodCard(f, i, mode) {
     </article>`;
 }
 
-// ---------- 地圖（Leaflet ＋ CARTO 底圖）----------
+// ---------- 簡圖：不分比例，只標各區相對位置；點區域才換真地圖 ----------
+// [短名, x%, y%]，左欄箱根・富士、右欄東京
+const SCHEM = {
+  kawaguchiko: ['河口湖', 11, 24], gotemba: ['御殿場', 17, 50], gora: ['強羅', 8, 70], yumoto: ['湯本', 20, 82],
+  akabane: ['赤羽', 60, 11], shibamata: ['柴又', 88, 15], ueno: ['上野', 74, 28], waseda: ['早稻田', 59, 33],
+  asakusa: ['淺草', 88, 37], nakano: ['中野', 44, 43], shinjuku: ['新宿', 56, 53], akiba: ['秋葉原', 75, 49],
+  oshiage: ['押上', 89, 58], fuchu: ['府中', 38, 69], harajuku: ['原宿', 52, 69], tsukishima: ['月島', 80, 75],
+  shibuya: ['澀谷', 59, 86],
+};
+const SCHEM_STAYS = { shinjuku: 'shinjuku', yumoto: 'yu', akabane: 'manoku' };
+const ROUTE = ['shinjuku', 'yumoto', 'gora', 'gotemba', 'yam', 'akabane'];
+
+function schematic(list, link) {
+  const pos = id => id === 'yam' ? [25, 33] : SCHEM[id].slice(1);
+  const route = ROUTE.map(pos).map(([x, y]) => `${x},${y}`).join(' ');
+  return `
+    <div class="schem" role="group" aria-label="區域簡圖">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <rect x="1.5" y="3" width="29" height="94" rx="3" class="schem-panel"/>
+        <rect x="32.5" y="3" width="66" height="94" rx="3" class="schem-panel"/>
+        <polyline points="${route}" class="schem-route"/>
+      </svg>
+      <span class="schem-cap" style="left:3%">箱根・富士</span>
+      <span class="schem-cap" style="left:34%">東京</span>
+      <span class="schem-node stay-only" style="left:25%;top:33%" title="${esc(STAYS.find(s => s.id === 'yam').name)}"><i>${ICON_STAY}</i><small>山中湖</small></span>
+      ${AREAS.map(a => {
+        const [name, x, y] = SCHEM[a.id];
+        const n = list.filter(f => f.area === a.id).length;
+        const stay = SCHEM_STAYS[a.id];
+        return `<a class="schem-node${n ? '' : ' none'}" data-area="${a.id}" href="${link('area', a.id)}" style="left:${x}%;top:${y}%" aria-label="${esc(a.name)} ${n} 間">
+          <i>${n}</i><small>${name}${stay ? ICON_STAY : ''}</small></a>`;
+      }).join('')}
+      <p class="schem-note">點區域看地圖 · 虛線＝移動路線 · ${ICON_STAY}＝住宿</p>
+    </div>`;
+}
+
+// 簡圖模式：卡片滑到哪間，就亮那一區
+function initSchematic(q) {
+  const all = foodFilter(q);
+  const mark = i => {
+    const a = all[i]?.area;
+    $$('.schem-node[data-area]').forEach(n => n.classList.toggle('on', n.dataset.area === a));
+  };
+  $('.food-car [data-car]')?.addEventListener('carchange', e => mark(e.detail));
+  mark(0);
+}
+
+// ---------- 地圖（Leaflet ＋ OSM 底圖）----------
 let foodMap = null, markers = {};
 
 function initFoodMap(q) {
   const el = $('#foodMap');
   if (foodMap) { foodMap.remove(); foodMap = null; }
   markers = {};
-  if (!el || !window.L) { el?.closest('.map-box')?.remove(); return; }
+  if (!el) { initSchematic(q); return; }
+  if (!window.L) { el.closest('.map-box')?.remove(); return; }
   const list = foodFilter(q).filter(f => f.lat);
   foodMap = L.map(el, { zoomControl: false, attributionControl: true, scrollWheelZoom: false, tap: true });
   L.control.zoom({ position: 'topright' }).addTo(foodMap);
@@ -741,6 +825,14 @@ document.addEventListener('click', e => {
   if (dot) return carGo($('[data-car]', dot.closest('.car-wrap')), Number(dot.dataset.dot));
   const loc = e.target.closest('[data-locate]');
   if (loc) {
+    // 簡圖模式沒有真地圖：切到該區的地圖並對準這間
+    if (!foodMap) {
+      const f = FOOD.find(x => x.id === loc.dataset.locate);
+      const q = new URLSearchParams(location.hash.split('?')[1] || '');
+      q.set('area', f.area); q.set('focus', f.id);
+      location.hash = '#food?' + q;
+      return;
+    }
     showFood(loc.dataset.locate);
     return $('.map-box')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
