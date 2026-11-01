@@ -299,6 +299,7 @@ function optionCard(p, o, i) {
           <li>${icon('yen')}<span>${esc(o.cost)}</span></li>
           ${o.access ? `<li>${icon('move')}<span>${esc(o.access)}</span></li>` : ''}
         </ul>
+        ${o.plan ? `<ol class="plan">${o.plan.map(x => { const [t, ...r] = x.split(' '); return `<li><time>${esc(t)}</time><span>${esc(r.join(' '))}</span></li>`; }).join('')}</ol>` : ''}
         <ul class="pc pros">${o.pros.map(x => `<li>${icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>
         <ul class="pc cons">${o.cons.map(x => `<li>${icon('x')}<span>${esc(x)}</span></li>`).join('')}</ul>
         ${o.areas.length ? `<div class="chips-row">${o.areas.map(a => `<a class="pill pill-link" href="#food?area=${a}">${icon('meal')}${esc(areaName(a))}美食</a>`).join('')}</div>` : ''}
@@ -498,7 +499,7 @@ function foodCard(f, i, mode) {
 // [短名, x%, y%]，左欄箱根・富士、右欄東京
 const SCHEM = {
   kawaguchiko: ['河口湖', 11, 24], gotemba: ['御殿場', 17, 50], gora: ['強羅', 8, 70], yumoto: ['湯本', 20, 82],
-  akabane: ['赤羽', 60, 11], shibamata: ['柴又', 88, 15], ueno: ['上野', 74, 28], waseda: ['早稻田', 59, 33],
+  akabane: ['赤羽', 60, 8], ikebukuro: ['池袋', 57, 21], shibamata: ['柴又', 88, 15], ueno: ['上野', 74, 28], waseda: ['早稻田', 59, 33],
   asakusa: ['淺草', 88, 37], nakano: ['中野', 44, 43], shinjuku: ['新宿', 56, 53], akiba: ['秋葉原', 75, 49],
   oshiage: ['押上', 89, 58], fuchu: ['府中', 38, 69], harajuku: ['原宿', 52, 69], tsukishima: ['月島', 80, 75],
   shibuya: ['澀谷', 59, 86],

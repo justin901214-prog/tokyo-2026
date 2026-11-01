@@ -483,7 +483,7 @@ section.poll { display: flex; flex-direction: column; gap: 14px; }
 .ds-main { display: flex; gap: 12px; align-items: center; }
 .ds-main img, .ds-noimg { width: 84px; height: 64px; border-radius: 10px; object-fit: cover; flex: none; }
 .ds-noimg { display: grid; place-items: center; background: var(--moss-soft); color: var(--moss); }
-.checkout { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); background: var(--gold-soft); border-radius: 10px; padding: 6px 10px; }
+.checkout { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); background: var(--gold-soft); border-radius: 10px; padding: 6px 10px; }
 .checkout .ic { width: 15px; height: 15px; color: var(--gold); }
 
 /* 行程總覽 */
@@ -519,3 +519,8 @@ section.poll { display: flex; flex-direction: column; gap: 14px; }
 .book-btn { flex: none; white-space: nowrap; }
 .book-btn span { font-size: 12.5px; }
 .book-btn[aria-pressed="true"] { background: var(--moss); border-color: var(--moss); color: #fff; }
+
+/* 選項卡片的時間表 */
+.plan { display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--rule); padding-left: 10px; margin: 2px 0; }
+.plan li { display: flex; gap: 8px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.plan time { flex: none; width: 82px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
