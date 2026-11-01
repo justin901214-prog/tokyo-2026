@@ -1,4 +1,4 @@
-import { TRIP, AREAS, TYPES, PRICES, FOOD, STAYS, DAYS, POLLS, TRANSPORT, BUDGET, TIPS } from './data.js';
+import { TRIP, AREAS, TYPES, PRICES, FOOD, STAYS, DAYS, POLLS, TRANSPORT, BUDGET, TIPS, BOOKINGS } from './data.js';
 import { FOOD_META } from './food-meta.js';
 import * as S from './social.js';
 
@@ -164,6 +164,19 @@ function overviewView() {
           </a></li>`;
         }).join('')}
       </ol>
+      <section class="card book">
+        <h2>${icon('check')}出發前要訂</h2>
+        <p class="muted small">訂好了就按「我訂好」，大家都看得到是誰訂的。</p>
+        <ul>${BOOKINGS.map(b => `
+          <li>
+            <div>
+              <b>${esc(b.title)}</b>
+              <small>${esc(b.when)} · ${esc(b.note)}</small>
+              <small class="liked-by" data-liked-by="book:${b.id}"></small>
+            </div>
+            <button class="like book-btn" data-like="book:${b.id}" aria-pressed="false">${icon('check')}<span>我訂好</span><b data-like-count="book:${b.id}">0</b></button>
+          </li>`).join('')}</ul>
+      </section>
       <div class="food-foot">
         <a class="btn-ghost" href="#vote/results">${icon('check')}投票結果總覽</a>
         <a class="btn-ghost" href="#info/budget">${icon('wallet')}預算表</a>
@@ -207,7 +220,7 @@ function dayStay(d) {
 
 function tlItem(it) {
   let extra = '';
-  if (it.type === 'meal' && it.area) extra = foodRail(it.area);
+  if (it.type === 'meal' && it.area) extra = foodRail(it.area, it.pick);
   if (it.type === 'meal' && it.pollArea) {
     const p = POLLS.find(x => x.id === it.pollArea);
     extra = `<p class="hint">看投票結果決定，各地點推薦：</p><div class="chips-row">${p.options.flatMap(o => o.areas).filter((a, i, arr) => arr.indexOf(a) === i)
@@ -229,8 +242,9 @@ function tlItem(it) {
 
 const likeCount = id => Object.keys(S.state.likes['food:' + id] || {}).length;
 
-function foodRail(area) {
-  const list = FOOD.filter(f => f.area === area).sort((a, b) => likeCount(b.id) - likeCount(a.id));
+function foodRail(area, pick) {
+  // pick：指定要的店（例如早餐只列早上有開的）
+  const list = FOOD.filter(f => f.area === area && (!pick || pick.includes(f.id))).sort((a, b) => likeCount(b.id) - likeCount(a.id));
   return `
     <div class="rail">
       ${list.slice(0, 4).map(f => `
@@ -710,7 +724,7 @@ function refreshSocial() {
   $$('[data-like]').forEach(el => el.setAttribute('aria-pressed', !!st.likes[el.dataset.like]?.[me]));
   $$('[data-liked-by]').forEach(el => {
     const names = Object.values(st.likes[el.dataset.likedBy] || {});
-    el.textContent = names.length ? '♥ ' + names.join('、') : '';
+    el.textContent = names.length ? (el.dataset.likedBy.startsWith('book:') ? '已訂：' : '♥ ') + names.join('、') : '';
   });
   $$('[data-ccount]').forEach(el => { el.textContent = (st.comments[el.dataset.ccount] || []).length; });
   $$('[data-clist]').forEach(el => {

@@ -19,7 +19,7 @@ export const AREAS = [
   { id: 'gora', name: '強羅・大涌谷', days: [3] },
   { id: 'gotemba', name: '御殿場', days: [3] },
   { id: 'kawaguchiko', name: '河口湖・富士吉田', days: [3, 4] },
-  { id: 'waseda', name: '早稻田', days: [5] },
+  { id: 'waseda', name: '早稻田・高田馬場', days: [1, 5] },
   { id: 'shibuya', name: '澀谷', days: [5, 6] },
   { id: 'harajuku', name: '原宿・表參道', days: [5, 6] },
   { id: 'akiba', name: '秋葉原・神田', days: [5] },
@@ -42,7 +42,7 @@ export const PRICES = [
 
 export const FOOD = [
   // 淺草
-  { id: 'imahan', name: '淺草今半 本店', jp: '浅草今半', area: 'asakusa', type: '燒肉・壽喜燒', price: 4, desc: '百年壽喜燒老店，黑毛和牛。午間套餐比晚餐便宜很多。', tip: '9 人一定要先訂位' },
+  { id: 'imahan', name: '淺草今半 本店', jp: '浅草今半', area: 'asakusa', type: '燒肉・壽喜燒', price: 4, desc: '百年壽喜燒老店，黑毛和牛。午間套餐比晚餐便宜很多。', tip: '8 人一定要先訂位' },
   { id: 'daikokuya', name: '大黑家天麩羅', jp: '大黒家天麩羅', area: 'asakusa', type: '天婦羅・炸物', price: 2, desc: '用胡麻油炸、醬汁濃厚的深色天丼，淺草排隊名店。', tip: '平日中午也會排 30 分鐘以上' },
   { id: 'yoshikami', name: '洋食 YOSHIKAMI', jp: '洋食ヨシカミ', area: 'asakusa', type: '洋食・漢堡排', price: 2, desc: '昭和老洋食館，蛋包飯、燉牛肉、炸豬排三明治。' },
   { id: 'menchi', name: '淺草炸肉餅', jp: '浅草メンチ', area: 'asakusa', type: '小吃・甜點', price: 1, desc: '現炸和牛肉餅，一個 ¥300 上下，邊走邊吃。' },
@@ -54,7 +54,7 @@ export const FOOD = [
   // 新宿
   { id: 'fuunji', name: '風雲兒', jp: '風雲児', area: 'shinjuku', type: '拉麵', price: 1, desc: '雞白湯魚介沾麵，南口步行 7 分。' },
   { id: 'tsunahachi', name: '綱八 新宿本店', jp: 'つな八 新宿本店', area: 'shinjuku', type: '天婦羅・炸物', price: 2, desc: '1924 年創業的天婦羅，午餐套餐 ¥2,000 上下。' },
-  { id: 'omoide', name: '回憶橫丁', jp: '思い出横丁', area: 'shinjuku', type: '居酒屋', price: 2, desc: '西口鐵道旁的串燒小巷，昭和氣氛。', tip: '店都很小，9 人要拆桌' },
+  { id: 'omoide', name: '回憶橫丁', jp: '思い出横丁', area: 'shinjuku', type: '居酒屋', price: 2, desc: '西口鐵道旁的串燒小巷，昭和氣氛。', tip: '店都很小，8 人要拆桌' },
   { id: 'isetan', name: '伊勢丹 地下美食', jp: '伊勢丹新宿 デパ地下', area: 'shinjuku', type: '小吃・甜點', price: 2, desc: '便當、熟食、甜點最齊全的百貨地下街，可以買回住處吃。' },
   { id: 'jojoen', name: '敘敘苑 新宿', jp: '叙々苑', area: 'shinjuku', type: '燒肉・壽喜燒', price: 4, desc: '高級燒肉連鎖，午間便當套餐比較便宜。' },
   { id: 'ichiran-s', name: '一蘭 新宿中央東口', jp: '一蘭', area: 'shinjuku', type: '拉麵', price: 1, desc: '24 小時營業的豚骨拉麵，半夜餓了也有。' },
@@ -78,6 +78,9 @@ export const FOOD = [
   { id: 'villa-bbq', name: '山中湖 Villa 自煮・BBQ', jp: '自炊', area: 'kawaguchiko', type: '在地料理', price: 2, desc: '11/18 晚上在 Villa 用露臺 BBQ 或廚房自煮。取車後順路去超市採買。', tip: '租車店 19:00 打烊，採買要在取車後' },
   // 早稻田
   { id: 'mercy', name: 'Mercy 拉麵', jp: 'ラーメン メルシー', area: 'waseda', type: '拉麵', price: 1, desc: '早稻田學生街傳說級便宜拉麵，一碗 ¥500 上下。' },
+  { id: 'baba-matsuya', name: '松屋（牛丼）', jp: '松屋 高田馬場', area: 'waseda', type: '小吃・甜點', price: 1, desc: '連鎖牛丼，早餐定食 ¥400 上下，24 小時，8 人也坐得下。', tip: '站前就有，連鎖店位置以 Google 地圖為準' },
+  { id: 'baba-soba', name: '站前立食蕎麥', jp: '立ち食いそば', area: 'waseda', type: '蕎麥・烏龍', price: 1, desc: '早上最快的日式早餐：熱蕎麥＋炸天婦羅，¥400–600。' , tip: '多半站著吃，人多就分批' },
+  { id: 'baba-cafe', name: '咖啡店早餐套餐', jp: 'モーニング（ドトール・コメダ等）', area: 'waseda', type: '小吃・甜點', price: 1, desc: '吐司＋蛋＋咖啡的モーニング，可以坐著休息、充電，等宿舍時間。' },
   { id: 'waseda-bento', name: '早稻田便當屋', jp: 'わせだの弁当屋', area: 'waseda', type: '小吃・甜點', price: 1, desc: '份量超大的學生便當，帶去校園吃。' },
   // 澀谷
   { id: 'midori', name: '美登利壽司 澀谷店', jp: '梅丘寿司の美登利 渋谷店', area: 'shibuya', type: '壽司', price: 2, desc: 'CP 值很高的壽司，套餐 ¥2,000 起。', tip: '先在店門口或線上抽號' },
@@ -110,9 +113,9 @@ export const FOOD = [
 
 export const STAYS = [
   {
-    id: 'shinjuku', nights: '11/16', night: 1, name: '新宿住宿', jp: '名稱待補', area: '新宿', people: 9,
+    id: 'shinjuku', nights: '11/16', night: 1, name: '新宿住宿', jp: '名稱待補', area: '新宿', people: 8,
     checkin: '15:00', checkout: '—', station: '新宿駅周邊',
-    notes: ['紅眼班機落地，行李先寄放，傍晚再入住', '住宿名稱與地址待補'],
+    notes: ['大行李放高田馬場蕭文嘉宿舍，只帶輕便行李來', '住宿名稱與地址待補'],
     photos: [], price: 'NT$1,130／人',
   },
   {
@@ -132,7 +135,7 @@ export const STAYS = [
     price: 'NT$1,670／人',
   },
   {
-    id: 'manoku', lat: 35.77918, lng: 139.71539, nights: '11/19 – 11/22', night: 3, name: 'ManOku 萬屋', jp: '赤羽台獨棟 · 200㎡ · 6 臥室', area: '北區 赤羽台', people: 7,
+    id: 'manoku', lat: 35.77918, lng: 139.71539, nights: '11/19 – 11/22', night: 3, name: 'ManOku 萬屋', jp: '赤羽台獨棟 · 200㎡ · 6 臥室', area: '北區 赤羽台', people: 8,
     checkin: '16:00–24:00', checkout: '10:30–11:00', station: '赤羽駅步行約 11 分（埼京線直達新宿 14 分）',
     url: 'https://www.booking.com/hotel/jp/myman-yi.zh-tw.html',
     notes: ['每人一張正式床；有電梯（入住前先問房東電梯是否正常）', '2 間衛浴（1 浴缸、1 淋浴），每層都有廁所', '客廳有大電視、長餐桌', '赤羽是居酒屋街，站前餐廳、超市很多'],
@@ -146,21 +149,25 @@ export const STAYS = [
 export const DAYS = [
   {
     n: 1, date: '11/16', dow: '一', title: '龜有・淺草・晴空塔', img: 'sensoji', stay: 'shinjuku',
-    lede: '紅眼班機落地，從龜有一路往西：兩津勘吉銅像、淺草寺，傍晚上晴空塔看夕陽轉夜景。',
+    lede: '紅眼班機落地，先到高田馬場把大行李放蕭文嘉宿舍、吃早餐，再去龜有找兩津勘吉、逛淺草寺，傍晚上晴空塔看夕陽轉夜景。',
     key: [
       { t: '06:30', text: '成田落地，入境約 1 小時' },
+      { t: '09:00', text: '高田馬場蕭文嘉宿舍放大行李（先跟他約好時間）。箱根、富士三天只帶輕便行李' },
       { t: '16:00', text: '晴空塔入場（11 月日落約 16:30）。官網票前一天 23:59 截止，現場加 ¥500' },
       { t: '早睡', text: '整晚沒睡，晚上不要排太滿' },
     ],
     items: [
       { t: '06:30', type: 'flight', title: '抵達成田機場', desc: '入境、領行李、買 Suica（或用手機 Suica）' },
-      { t: '07:45', type: 'move', title: 'Skyliner → 日暮里', desc: '約 40 分。大行李放日暮里站置物櫃，或先寄到新宿住宿' },
-      { t: '08:45', type: 'move', title: 'JR 常磐線 日暮里 → 龜有', desc: '約 15 分' },
-      { t: '09:00', type: 'spot', title: '龜有 兩津勘吉銅像巡禮', desc: '銅像 15 座、人孔蓋、香取神社、Ario 3F こち亀ゲームぱ～く，全免費', img: 'kameari' },
-      { t: '11:00', type: 'move', title: '龜有 → 北千住 → 淺草', desc: '約 25 分' },
-      { t: '11:45', type: 'meal', meal: '午餐', area: 'asakusa', title: '淺草午餐' },
-      { t: '13:00', type: 'spot', title: '雷門・仲見世通・淺草寺', desc: '免費。邊走邊吃炸肉餅、黍糰子', img: 'sensoji' },
-      { t: '15:15', type: 'move', title: '淺草 → 押上', desc: '走過隅田川約 20 分，或淺草線 1 站' },
+      { t: '07:45', type: 'move', title: 'Skyliner → 日暮里', desc: '約 40 分' },
+      { t: '08:30', type: 'move', title: 'JR 山手線 日暮里 → 高田馬場', desc: '約 20 分' },
+      { t: '09:00', type: 'stay', title: '蕭文嘉宿舍放大行李', desc: '大行李放到 11/19 晚上再拿。隨身只帶 3 晚的輕便行李：換洗衣物、盥洗、充電器、護照、台灣駕照＋日文譯本' },
+      { t: '09:15', type: 'meal', meal: '早餐', area: 'waseda', pick: ['baba-matsuya', 'baba-soba', 'baba-cafe'], title: '高田馬場早餐', desc: '學生街，站前連鎖早餐很多；比到龜有（10:45）再吃早' },
+      { t: '10:00', type: 'move', title: '高田馬場 → 東西線 → 大手町 → 千代田線 → 龜有', desc: '約 40 分。千代田線直通常磐線各站停車，不用出站' },
+      { t: '10:45', type: 'spot', title: '龜有 兩津勘吉銅像巡禮', desc: '銅像 15 座、人孔蓋、香取神社、Ario 3F こち亀ゲームぱ～く，全免費', img: 'kameari' },
+      { t: '12:15', type: 'move', title: '龜有 → 北千住 → 淺草', desc: '約 25 分' },
+      { t: '12:45', type: 'meal', meal: '午餐', area: 'asakusa', title: '淺草午餐' },
+      { t: '14:00', type: 'spot', title: '雷門・仲見世通・淺草寺', desc: '免費。邊走邊吃炸肉餅、黍糰子', img: 'sensoji' },
+      { t: '15:30', type: 'move', title: '淺草 → 押上', desc: '走過隅田川約 20 分，或淺草線 1 站' },
       { t: '16:00', type: 'spot', title: '東京晴空塔', desc: '天望甲板 350m ¥1,800 起；加天望迴廊 450m 套票 ¥3,000 起（浮動票價）', img: 'skytree' },
       { t: '18:00', type: 'meal', meal: '晚餐', area: 'oshiage', title: '晴空街道晚餐' },
       { t: '19:30', type: 'stay', title: '回新宿入住', desc: '押上 → 新宿約 30 分' },
@@ -180,7 +187,7 @@ export const DAYS = [
       { t: '10:30', type: 'meal', meal: '早午餐', area: 'yumoto', title: '湯本早午餐・商店街' },
       { t: '12:00', type: 'move', title: '箱根登山電車 → 小涌谷', desc: '約 35 分，之字形折返爬坡', img: 'tozan' },
       { t: '13:00', type: 'spot', title: '小涌園・蓬萊園・千條瀑布', desc: '11 月中是紅葉季，蓬萊園的楓葉很漂亮', img: 'momiji' },
-      { t: '15:30', type: 'move', title: '登山電車下山回湯本', desc: '拿行李，搭計程車上坡到 Airbnb（9 人 3 台）' },
+      { t: '15:30', type: 'move', title: '登山電車下山回湯本', desc: '拿行李，搭計程車上坡到 Airbnb（9 人 3 台）。蕭文嘉今晚一起住' },
       { t: '16:00', type: 'stay', title: 'Airbnb 入住', desc: '15:00–21:00 自助入住' },
       { t: '16:30', type: 'poll', poll: 'p17', title: '泡湯去哪（投票）' },
       { t: '18:00', type: 'meal', meal: '晚餐', area: 'yumoto', title: '湯本晚餐', desc: '選湯寮或かっぱ天國要先泡再吃（19:00／20:00 前進場）；選おかだ、天山可以吃完再去' },
@@ -191,8 +198,9 @@ export const DAYS = [
     n: 3, date: '11/18', dow: '三', title: '大涌谷 → 御殿場 → 河口湖取車', img: 'owakudani', stay: 'yam',
     lede: '一早搭纜車越過噴煙的大涌谷，吃黑蛋，下午轉兩段巴士到河口湖取車，開去山中湖 Villa。',
     key: [
+      { t: '分開', text: '蕭文嘉不去富士，今天自行從箱根回東京（周遊券可搭回新宿）' },
       { t: '15:00', text: '最晚這時要離開大涌谷：要轉兩段車，山線班次少、11 月天黑早' },
-      { t: '19:00', text: '河口湖站前租車店打烊，一定要在之前取車' },
+      { t: '19:00', text: '河口湖站附近租車店約 19:00–20:00 打烊，一定要在之前取車' },
       { t: '取車前', text: '台灣駕照要帶「日文譯本」＋護照＋台灣駕照正本' },
     ],
     items: [
@@ -201,7 +209,7 @@ export const DAYS = [
       { t: '10:15', type: 'spot', title: '大涌谷', desc: '黑蛋 ¥500／4 顆，硫磺噴煙地形', img: 'owakudani' },
       { t: '11:30', type: 'meal', meal: '午餐', area: 'gora', title: '大涌谷・強羅午餐' },
       { t: '13:00', type: 'move', title: '大涌谷 → 桃源台 → 御殿場 → 河口湖', desc: '空中纜車到桃源台（周遊券），再轉巴士兩段：桃源台 → 御殿場駅、御殿場駅 → 河口湖駅，約 2–2.5 小時，自費約 ¥2,980' },
-      { t: '16:00', type: 'move', title: '河口湖駅取車', desc: '8 人：兩台車或一台 10 人座。順路超市採買晚餐' },
+      { t: '16:00', type: 'move', title: '河口湖駅取車', desc: '8 人：兩台 5 人座（要 2 位駕駛）或一台 8 人座＋輕便行李。台灣駕照不能開 10 人座。順路超市採買晚餐' },
       { t: '17:30', type: 'stay', title: '山中湖 Villa 入住', desc: '開車約 30 分' },
       { t: '18:30', type: 'meal', meal: '晚餐', area: 'kawaguchiko', title: 'Villa 晚餐' },
     ],
@@ -213,6 +221,7 @@ export const DAYS = [
     key: [
       { t: '早上', text: 'Villa 露臺看日出富士（日出約 06:15），晴天無風最清楚' },
       { t: '16:30', text: '河口湖駅還車（加滿油）' },
+      { t: '19:00', text: '高田馬場拿大行李，先跟蕭文嘉約好' },
       { t: '出發前', text: '河口湖 → 新宿高速巴士要先上網訂位' },
     ],
     items: [
@@ -222,8 +231,9 @@ export const DAYS = [
       { t: '13:00', type: 'spot', title: '大石公園', desc: '河口湖北岸，紅葉迴廊與逆富士', img: 'oishi' },
       { t: '14:30', type: 'spot', title: '天空鳥居（河口淺間神社遙拜所）', desc: '鳥居正對富士山，¥100', img: 'kawaguchi' },
       { t: '16:30', type: 'move', title: '還車 → 高速巴士 → 新宿', desc: '約 1 小時 45 分（週四傍晚可能塞車）' },
-      { t: '18:45', type: 'move', title: '新宿 → 埼京線 → 赤羽', desc: '14 分，走 11 分到 ManOku' },
-      { t: '19:30', type: 'meal', meal: '晚餐', area: 'akabane', title: '赤羽晚餐' },
+      { t: '18:45', type: 'move', title: '新宿 → 山手線 → 高田馬場', desc: '4 分。到蕭文嘉宿舍拿大行李（先約時間）' },
+      { t: '19:15', type: 'move', title: '高田馬場 → 池袋 → 埼京線 → 赤羽', desc: '約 20 分。赤羽站到 ManOku 是上坡，帶大行李建議計程車（8 人 2–3 台）' },
+      { t: '20:00', type: 'meal', meal: '晚餐', area: 'akabane', title: '赤羽晚餐', desc: '居酒屋多開到深夜，不用趕' },
     ],
     cost: '租車分攤 ¥4,300–7,100、油錢、巴士 ¥2,000',
   },
@@ -338,7 +348,7 @@ export const POLLS = [
     options: [
       { id: 'akabane', title: '赤羽居酒屋巡禮', img: 'food/marumasu', areas: ['akabane'], time: '18:00–', cost: '¥2,000–4,000', access: '住處走路 11 分',
         pros: ['喝完走路回家', '關東煮立食、昼飲名店', '最便宜'],
-        cons: ['店都小，9 人要拆桌', '沒有夜景'] },
+        cons: ['店都小，8 人要拆桌', '沒有夜景'] },
       { id: 'omoide', title: '新宿回憶橫丁', img: 'omoide', areas: ['shinjuku'], time: '18:00–', cost: '¥3,000–5,000', access: '埼京線 14 分',
         pros: ['昭和串燒小巷氣氛', '順便看新宿夜景'],
         cons: ['觀光客多、價格偏高', '店很小，要拆桌'] },
@@ -374,14 +384,14 @@ export const TRANSPORT = {
     { name: '箱根周遊券（2 日，新宿出發）', price: '¥7,100', note: '含新宿 ⇄ 小田原、登山電車、纜車、空中纜車、箱根巴士。御殿場之後不含' },
     { name: '浪漫特快特急券', price: '¥1,200', note: '新宿 → 箱根湯本 85 分，要另買指定席' },
     { name: '大涌谷 → 御殿場 → 河口湖 巴士', price: '約 ¥2,980', note: '周遊券不含，自費' },
-    { name: '租車 2 天（河口湖駅）', price: '分攤 ¥4,300–7,100／人', note: '8 人：兩台車或 10 人座。台灣駕照要「日文譯本」。店多半 19:00 打烊' },
+    { name: '租車 2 天（河口湖駅）', price: '分攤 ¥4,300–7,100／人', note: '8 人：兩台 5 人座或一台 8 人座。台灣普通駕照只能開 9 人座以下，10 人座 Hiace 會被拒絕交車。要駕照正本＋日文譯本＋護照' },
     { name: '河口湖 → 新宿 高速巴士', price: '¥2,000', note: '約 1 小時 45 分，先上網訂位' },
   ],
   routes: [
-    { day: 1, text: '成田 →（Skyliner）→ 日暮里 →（常磐線）→ 龜有 → 北千住 → 淺草 → 押上 → 新宿' },
+    { day: 1, text: '成田 →（Skyliner）→ 日暮里 →（山手線）→ 高田馬場（放行李）→（東西線・千代田線）→ 龜有 → 北千住 → 淺草 → 押上 → 新宿' },
     { day: 2, text: '新宿 →（浪漫特快）→ 箱根湯本 →（登山電車）→ 小涌谷 → 箱根湯本' },
-    { day: 3, text: '湯本 → 強羅 →（纜車）→ 早雲山 →（空中纜車）→ 大涌谷 →（巴士）→ 御殿場 → 河口湖駅（取車）→ 山中湖' },
-    { day: 4, text: '山中湖 →（自駕）→ 新倉山 → 大石公園 → 天空鳥居 → 河口湖駅（還車）→（高速巴士）→ 新宿 →（埼京線）→ 赤羽' },
+    { day: 3, text: '湯本 → 強羅 →（纜車）→ 早雲山 →（空中纜車）→ 大涌谷 → 桃源台 →（巴士）→ 御殿場 →（巴士）→ 河口湖駅（取車）→ 山中湖' },
+    { day: 4, text: '山中湖 →（自駕）→ 新倉山 → 大石公園 → 天空鳥居 → 河口湖駅（還車）→（高速巴士）→ 新宿 →（山手線）→ 高田馬場（拿行李）→ 池袋 →（埼京線）→ 赤羽' },
     { day: 5, text: '赤羽 → 池袋 → 高田馬場 → 早稻田 →（下午依投票）→ 赤羽' },
     { day: 6, text: '依投票：競馬場走新宿京王線 → 府中競馬正門前約 30 分' },
     { day: 7, text: '赤羽 →（京濱東北線）→ 日暮里 →（Skyliner）→ 成田' },
@@ -419,6 +429,17 @@ export const BUDGET = {
     { item: 'Shibuya Sky', yen: 2500 },
   ],
 };
+
+// 出發前要訂的東西。網站上按「我訂好了」會記名字（用按讚的機制）
+export const BOOKINGS = [
+  { id: 'jptrans', title: '台灣駕照日文譯本', when: '出發前，監理站辦', note: '每位駕駛都要。取車時要駕照正本＋譯本＋護照' },
+  { id: 'car', title: '河口湖租車', when: '11/18 16:00 取 → 11/19 16:30 還', note: '8 人：兩台 5 人座或一台 8 人座，不能訂 10 人座' },
+  { id: 'skyliner', title: 'Skyliner 來回', when: '11/16 去、11/22 回', note: '線上買外國人優惠票' },
+  { id: 'skytree', title: '晴空塔門票', when: '11/16 16:00 時段', note: '官網前一天 23:59 截止，現場加 ¥500' },
+  { id: 'romance', title: '浪漫特快指定席＋箱根周遊券', when: '11/17 09:00 新宿出發', note: '9 人（含蕭文嘉）' },
+  { id: 'fujibus', title: '河口湖 → 新宿高速巴士', when: '11/19 傍晚', note: '週四傍晚，先上網訂位' },
+  { id: 'dorm', title: '跟蕭文嘉約放行李／拿行李時間', when: '11/16 09:00、11/19 19:00', note: '高田馬場宿舍' },
+];
 
 export const TIPS = [
   { h: '天氣', p: '11 月中旬東京約 9–17°C；箱根、富士山區早晚 0–10°C，要帶保暖外套。日出約 06:15、日落約 16:30。' },

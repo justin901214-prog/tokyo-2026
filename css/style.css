@@ -508,3 +508,14 @@ section.poll { display: flex; flex-direction: column; gap: 14px; }
 .ov-meta .ic { margin-top: 2px; }
 .ov-meta b { color: var(--accent); flex: none; }
 .ov .ic { width: 14px; height: 14px; }
+
+/* 出發前要訂 */
+.book ul { display: flex; flex-direction: column; }
+.book li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--rule-soft); }
+.book li > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.book li b { font-size: 14.5px; }
+.book li small { font-size: 12px; color: var(--muted); }
+.book li .liked-by { color: var(--moss) !important; }
+.book-btn { flex: none; white-space: nowrap; }
+.book-btn span { font-size: 12.5px; }
+.book-btn[aria-pressed="true"] { background: var(--moss); border-color: var(--moss); color: #fff; }
