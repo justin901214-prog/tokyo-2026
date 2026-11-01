@@ -66,6 +66,7 @@ function render() {
   else if (r.tab === 'food') view.innerHTML = foodView(r.q);
   else if (r.tab === 'stay') view.innerHTML = stayView();
   else if (r.tab === 'info') view.innerHTML = infoView(r.arg);
+  else if (r.arg === 'all') view.innerHTML = overviewView();
   else {
     const n = Math.min(Math.max(Number(r.arg) || defaultDay(), 1), DAYS.length);
     try { localStorage.setItem('trip-day', n); } catch {}
@@ -87,7 +88,8 @@ function render() {
 
 // ---------- 行程 ----------
 function dayChips(cur) {
-  return `<nav class="days" aria-label="選擇日期">${DAYS.map(d => `
+  return `<nav class="days" aria-label="選擇日期">
+    <a href="#day/all" class="days-all" ${cur === 'all' ? 'aria-current="page"' : ''}><small>七日</small><b>總覽</b><small>&nbsp;</small></a>${DAYS.map(d => `
     <a href="#day/${d.n}" ${d.n === cur ? 'aria-current="page"' : ''}>
       <small>${d.date.split('/')[0]}月</small><b>${d.date.split('/')[1]}</b><small>${d.dow}${d.items.some(i => i.type === 'poll') ? ' <i class="dot-poll" title="有投票"></i>' : ''}</small>
     </a>`).join('')}</nav>`;
@@ -121,6 +123,52 @@ function dayView(d) {
         ${d.n > 1 ? `<a href="#day/${d.n - 1}">‹ Day ${d.n - 1}</a>` : '<span></span>'}
         ${d.n < DAYS.length ? `<a href="#day/${d.n + 1}">Day ${d.n + 1} ›</a>` : '<span></span>'}
       </nav>
+    </div>`;
+}
+
+// 行程總覽：一天一列，景點、住宿、投票領先一眼看完
+function overviewView() {
+  const stays = [];
+  DAYS.forEach(d => {
+    const last = stays[stays.length - 1];
+    if (d.stay && last?.id === d.stay) last.n++;
+    else if (d.stay) stays.push({ id: d.stay, n: 1 });
+  });
+  const short = { shinjuku: '新宿', yu: '箱根湯本', yam: '山中湖', manoku: '赤羽' };
+  return `
+    ${dayChips('all')}
+    <div class="pad">
+      <header class="page-head">
+        <h1>行程總覽</h1>
+        <p class="muted">${esc(TRIP.flights.map(f => `${f.label} ${f.date} ${f.time}`).join(' ／ '))}</p>
+      </header>
+      <section class="card ov-route">
+        <h2>${icon('stay')}住宿路線</h2>
+        <ol>${stays.map(s => `<li><b>${short[s.id]}</b><small>${s.n} 晚</small></li>`).join('')}<li class="home"><b>回台</b><small>11/22</small></li></ol>
+      </section>
+      <ol class="ov">
+        ${DAYS.map(d => {
+          const spots = d.items.filter(i => i.type === 'spot').map(i => i.title.replace(/（.*）/, ''));
+          const polls = d.items.filter(i => i.type === 'poll');
+          const stay = STAYS.find(s => s.id === d.stay);
+          return `
+          <li><a href="#day/${d.n}">
+            <div class="ov-date"><b>${d.date.split('/')[1]}</b><small>${d.dow}</small></div>
+            <div class="ov-body">
+              <h3>${esc(d.title)}</h3>
+              ${spots.length ? `<p class="ov-spots">${spots.map(esc).join(' → ')}</p>` : ''}
+              ${polls.map(i => `<p class="ov-poll" data-ov-lead="${i.poll}">${icon('check')}${esc(POLLS.find(p => p.id === i.poll).short.replace(/^\S+\s/, ''))}：<span>還沒有票</span></p>`).join('')}
+              <p class="ov-meta">${icon('clock')}<b>${esc(d.key[0].t)}</b>${esc(d.key[0].text.split('，')[0])}</p>
+              <p class="ov-meta">${stay ? `${icon('stay')}住 ${esc(stay.name)}` : `${icon('plane')}搭機回台`}</p>
+            </div>
+          </a></li>`;
+        }).join('')}
+      </ol>
+      <div class="food-foot">
+        <a class="btn-ghost" href="#vote/results">${icon('check')}投票結果總覽</a>
+        <a class="btn-ghost" href="#info/budget">${icon('wallet')}預算表</a>
+        <a class="btn-ghost" href="#info/transport">${icon('map')}交通</a>
+      </div>
     </div>`;
 }
 
@@ -690,6 +738,10 @@ function refreshSocial() {
     const p = POLLS.find(x => x.id === a.dataset.evt), t = tally(p.id);
     a.classList.toggle('voted', !!t.mine);
     $('[data-evt-lead]', a).textContent = t.total ? `${t.leaders.map(o => o.title).join('、').slice(0, 10)} ${t.max} 票` : '還沒有票';
+  });
+  $$('[data-ov-lead]').forEach(el => {
+    const t = tally(el.dataset.ovLead);
+    $('span', el).textContent = t.total ? `${t.leaders.map(o => o.title).join('、')} 領先（${t.max} 票）` : '還沒有票';
   });
   const res = $('[data-results]');
   if (res) renderResults(res);

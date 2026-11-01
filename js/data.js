@@ -200,7 +200,7 @@ export const DAYS = [
       { t: '09:30', type: 'move', title: '登山纜車 → 早雲山 → 空中纜車', desc: '空中纜車越過大涌谷，晴天看得到富士山' },
       { t: '10:15', type: 'spot', title: '大涌谷', desc: '黑蛋 ¥500／4 顆，硫磺噴煙地形', img: 'owakudani' },
       { t: '11:30', type: 'meal', meal: '午餐', area: 'gora', title: '大涌谷・強羅午餐' },
-      { t: '13:00', type: 'move', title: '大涌谷 → 御殿場 → 河口湖', desc: '巴士兩段，約 2–2.5 小時，自費約 ¥2,980' },
+      { t: '13:00', type: 'move', title: '大涌谷 → 桃源台 → 御殿場 → 河口湖', desc: '空中纜車到桃源台（周遊券），再轉巴士兩段：桃源台 → 御殿場駅、御殿場駅 → 河口湖駅，約 2–2.5 小時，自費約 ¥2,980' },
       { t: '16:00', type: 'move', title: '河口湖駅取車', desc: '8 人：兩台車或一台 10 人座。順路超市採買晚餐' },
       { t: '17:30', type: 'stay', title: '山中湖 Villa 入住', desc: '開車約 30 分' },
       { t: '18:30', type: 'meal', meal: '晚餐', area: 'kawaguchiko', title: 'Villa 晚餐' },
@@ -252,6 +252,7 @@ export const DAYS = [
     ],
     items: [
       { t: '09:00', type: 'poll', poll: 'p21', title: '白天行程' },
+      { t: '12:00', type: 'meal', meal: '午餐', title: '午餐（依投票地點）', pollArea: 'p21' },
       { t: '18:00', type: 'poll', poll: 'p21n', title: '晚上去哪' },
     ],
     cost: '依投票結果',
@@ -260,7 +261,7 @@ export const DAYS = [
     n: 7, date: '11/22', dow: '日', title: '早上自由 → 回程', img: 'ueno', stay: null,
     lede: '早上輕鬆逛（投票），10:15 前離開赤羽，經日暮里搭 Skyliner 去成田。',
     key: [
-      { t: '10:30', text: 'ManOku 退房（10:30–11:00）' },
+      { t: '10:00', text: 'ManOku 退房（規定 10:30–11:00，但 10:15 要出發，提早退）' },
       { t: '10:15', text: '最晚從赤羽出發：京濱東北線到日暮里 → Skyliner 約 40 分' },
       { t: '11:55', text: '抵達成田機場（起飛前 2 小時）' },
     ],

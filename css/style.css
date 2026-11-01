@@ -485,3 +485,26 @@ section.poll { display: flex; flex-direction: column; gap: 14px; }
 .ds-noimg { display: grid; place-items: center; background: var(--moss-soft); color: var(--moss); }
 .checkout { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); background: var(--gold-soft); border-radius: 10px; padding: 6px 10px; }
 .checkout .ic { width: 15px; height: 15px; color: var(--gold); }
+
+/* 行程總覽 */
+.days a.days-all b { font-size: 15px; }
+.ov-route ol { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ov-route li { display: flex; align-items: baseline; gap: 4px; background: var(--moss-soft); color: var(--moss); border-radius: 999px; padding: 3px 10px; }
+.ov-route li b { font-size: 13.5px; }
+.ov-route li small { font-size: 11.5px; }
+.ov-route li:not(:last-child)::after { content: '→'; margin-left: 6px; color: var(--muted); }
+.ov-route li.home { background: var(--rule-soft); color: var(--ink-2); }
+.ov { display: flex; flex-direction: column; gap: 10px; }
+.ov a { display: flex; gap: 12px; text-decoration: none; background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); }
+.ov-date { flex: none; width: 40px; display: flex; flex-direction: column; align-items: center; line-height: 1.1; padding-top: 2px; }
+.ov-date b { font-size: 22px; font-family: var(--f-display); }
+.ov-date small { font-size: 11.5px; color: var(--muted); }
+.ov-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ov-body h3 { font-size: 15.5px; line-height: 1.4; }
+.ov-spots { font-size: 13px; color: var(--ink-2); }
+.ov-poll { font-size: 13px; color: var(--gold); display: flex; align-items: center; gap: 4px; font-weight: 700; }
+.ov-poll span { font-weight: 400; color: var(--ink-2); }
+.ov-meta { font-size: 12px; color: var(--muted); display: flex; align-items: flex-start; gap: 4px; }
+.ov-meta .ic { margin-top: 2px; }
+.ov-meta b { color: var(--accent); flex: none; }
+.ov .ic { width: 14px; height: 14px; }
